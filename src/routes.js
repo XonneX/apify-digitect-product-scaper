@@ -32,6 +32,7 @@ async function handleListingPage({ page, request, enqueueLinks }) {
 
     const products = await page.$$eval('a[href*="/s1/product/"]', (links) => {
         const seen = new Set();
+        const clean = (value) => (value ?? '').replace(/\s+/g, ' ').trim();
 
         return links
             .map((a) => {
@@ -49,10 +50,10 @@ async function handleListingPage({ page, request, enqueueLinks }) {
                 const tbMatch = text.match(/(\d+(?:[.,]\d+)?)\s*TB/i);
 
                 return {
-                    title: cleanLine(a.innerText || text.split('\n')[0]),
+                    title: clean(a.innerText || text.split('\n')[0]),
                     url: href,
                     priceText: priceMatch?.[0] ?? null,
-                    priceChf: priceMatch ? parseSwissPrice(priceMatch[1]) : null,
+                    priceValueRaw: priceMatch?.[1] ?? null,
                     capacityTb: tbMatch ? Number(tbMatch[1].replace(',', '.')) : null,
                     rawText: text,
                 };
@@ -61,14 +62,18 @@ async function handleListingPage({ page, request, enqueueLinks }) {
             .filter((item) => item.title && item.title.length > 5);
     });
 
-    const normalized = products.map((p) => ({
-        ...p,
-        pricePerTb:
-            p.priceChf && p.capacityTb
-                ? Number((p.priceChf / p.capacityTb).toFixed(2))
-                : null,
-        scrapedAt: new Date().toISOString(),
-    }));
+    const normalized = products.map((p) => {
+        const priceChf = p.priceValueRaw ? parseSwissPrice(p.priceValueRaw) : null;
+        return {
+            ...p,
+            priceChf,
+            pricePerTb:
+                priceChf && p.capacityTb
+                    ? Number((priceChf / p.capacityTb).toFixed(2))
+                    : null,
+            scrapedAt: new Date().toISOString(),
+        };
+    });
 
     await Actor.pushData(normalized);
 
