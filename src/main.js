@@ -25,6 +25,8 @@ const crawler = new PlaywrightCrawler({
     launchContext: {
         launchOptions: {
             args: ['--disable-gpu'],
+            headless: false,
+            slowMo: 200,
         },
     },
 
