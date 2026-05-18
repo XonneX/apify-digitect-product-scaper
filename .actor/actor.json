@@ -7,7 +7,7 @@
     "version": "0.0",
     "meta": {
         "templateId": "js-crawlee-playwright-chrome",
-        "generatedBy": "<FILL-IN-MODEL>"
+        "generatedBy": "Codex CLI with GPT-5.2"
     },
     "input": "./input_schema.json",
     "output": "./output_schema.json",

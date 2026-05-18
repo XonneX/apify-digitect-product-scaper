@@ -6,7 +6,7 @@
         "overview": {
             "title": "Overview",
             "transformation": {
-                "fields": ["title", "url"]
+                "fields": ["title", "url", "specifications"]
             },
             "display": {
                 "component": "table",
@@ -18,6 +18,10 @@
                     "url": {
                         "label": "URL",
                         "format": "link"
+                    },
+                    "specifications": {
+                        "label": "Specifications",
+                        "format": "object"
                     }
                 }
             }

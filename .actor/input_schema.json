@@ -1,19 +1,52 @@
 {
     "$schema": "https://apify.com/schemas/v1/input.ide.json",
-    "title": "PlaywrightCrawler Template",
+    "title": "Digitec Product Scraper",
     "type": "object",
     "schemaVersion": 1,
     "properties": {
         "startUrls": {
             "title": "Start URLs",
             "type": "array",
-            "description": "URLs to start with.",
+            "description": "Listing/category URLs to start with (the Actor will follow product pages and extract Specifications).",
             "editor": "requestListSources",
             "prefill": [
                 {
-                    "url": "https://apify.com"
+                    "url": "https://www.digitec.ch/en/s1/producttype/hard-drives-36?filter=460%3D16%3A32%3A15%2C60%3D1098"
                 }
             ]
+        },
+        "maxRequestsPerCrawl": {
+            "title": "Max requests per crawl",
+            "type": "integer",
+            "description": "Maximum number of pages to process (0 = unlimited).",
+            "default": 200,
+            "minimum": 0
+        },
+        "maxConcurrency": {
+            "title": "Max concurrency",
+            "type": "integer",
+            "description": "Parallel pages in the crawler.",
+            "default": 3,
+            "minimum": 1
+        },
+        "headless": {
+            "title": "Headless browser",
+            "type": "boolean",
+            "description": "Run the browser in headless mode.",
+            "default": true
+        },
+        "slowMoMillis": {
+            "title": "Slow motion (ms)",
+            "type": "integer",
+            "description": "Adds a delay between Playwright operations (useful for debugging).",
+            "default": 0,
+            "minimum": 0
+        },
+        "proxyConfiguration": {
+            "title": "Proxy configuration",
+            "type": "object",
+            "description": "Proxy settings used by the Actor.",
+            "editor": "proxy"
         }
     }
 }

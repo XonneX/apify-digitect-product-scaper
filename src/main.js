@@ -1,5 +1,6 @@
-import { PlaywrightCrawler, log } from '@crawlee/playwright';
+import { PlaywrightCrawler } from '@crawlee/playwright';
 import { Actor } from 'apify';
+import { log } from 'apify';
 import { router } from './routes.js';
 
 await Actor.init();
@@ -10,10 +11,13 @@ const startUrls = input.startUrls ?? [
     'https://www.digitec.ch/en/s1/producttype/hard-drives-36?filter=460%3D16%3A32%3A15%2C60%3D1098',
 ];
 
-const proxyConfiguration = await Actor.createProxyConfiguration({
-    groups: ['RESIDENTIAL'],
-    checkAccess: true,
-});
+const proxyConfiguration = await Actor.createProxyConfiguration(
+    input.proxyConfiguration ?? {
+        // Digitec can be strict; change in Input tab if needed.
+        groups: ['RESIDENTIAL'],
+        checkAccess: true,
+    },
+);
 
 const crawler = new PlaywrightCrawler({
     proxyConfiguration,
@@ -25,8 +29,8 @@ const crawler = new PlaywrightCrawler({
     launchContext: {
         launchOptions: {
             args: ['--disable-gpu'],
-            headless: false,
-            slowMo: 200,
+            headless: input.headless ?? true,
+            slowMo: input.slowMoMillis ?? 0,
         },
     },
 

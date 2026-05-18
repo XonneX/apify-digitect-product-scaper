@@ -1,69 +1,82 @@
-## PlaywrightCrawler template
+## What does Digitec Product Scraper do?
 
-<!-- This is an Apify template readme -->
+Digitec Product Scraper extracts **product URLs and full “Specifications”** from product detail pages on [Digitec](https://www.digitec.ch/). Provide one or more listing/category URLs as `startUrls` and the Actor will discover product pages, open each product, and export the complete Specifications tables (including “Key specifications” and any “Show more specifications” content).
 
-This template is a production-ready boilerplate for developing an [Actor](https://apify.com/actors) with `PlaywrightCrawler`. Use this to bootstrap your projects using the most up-to-date code.
+Because it runs on the Apify platform, you also get API access to results, scheduling, monitoring, and integrations, plus optional proxy rotation to improve reliability.
 
-> We decided to split Apify SDK into two libraries, Crawlee and Apify SDK v3. Crawlee will retain all the crawling and scraping-related tools and will always strive to be the best [web scraping](https://apify.com/web-scraping) library for its community. At the same time, Apify SDK will continue to exist, but keep only the Apify-specific features related to building Actors on the Apify platform. Read the upgrading guide to learn about the changes.
+## Why use Digitec Product Scraper?
 
-## Resources
+- Build product catalogs enriched with technical data for comparison, analytics, or internal procurement.
+- Track spec changes over time (e.g., interface, cache size, rpm, dimensions).
+- Export structured data to downstream systems via Apify dataset formats and integrations.
 
-If you're looking for examples or want to learn more visit:
+## How to use Digitec Product Scraper
 
-- [Crawlee + Apify Platform guide](https://crawlee.dev/docs/guides/apify-platform)
-- [Documentation](https://crawlee.dev/api/playwright-crawler/class/PlaywrightCrawler) and [examples](https://crawlee.dev/docs/examples/playwright-crawler)
-- [Node.js tutorials](https://docs.apify.com/academy/node-js) in Academy
-- [Scraping single-page applications with Playwright](https://blog.apify.com/scraping-single-page-applications-with-playwright/)
-- [How to scale Puppeteer and Playwright](https://blog.apify.com/how-to-scale-puppeteer-and-playwright/)
-- [Integration with Zapier](https://apify.com/integrations), Make, GitHub, Google Drive and other apps
-- [Video guide on getting data using Apify API](https://www.youtube.com/watch?v=ViYYDHSBAKM)
-- A short guide on how to create Actors using code templates:
+1. Open the Actor in Apify Console.
+2. In the **Input** tab, set `startUrls` to a Digitec listing/category page (or multiple pages).
+3. (Optional) Tune `maxRequestsPerCrawl` and `maxConcurrency` for speed vs. server load.
+4. Run the Actor.
+5. Open the **Output** tab and download the dataset (JSON/CSV/Excel/etc.).
 
-[web scraper template](https://www.youtube.com/watch?v=u-i-Korzf8w)
+## Input
 
+The most important input is:
 
-## Getting started
+- `startUrls` (required): Listing/category URLs to start from.
 
-For complete information [see this article](https://docs.apify.com/platform/actors/development#build-actor-at-apify-console). In short, you will:
+Optional advanced inputs:
 
-1. Build the Actor
-2. Run the Actor
+- `maxRequestsPerCrawl`: Limit the total number of pages processed.
+- `maxConcurrency`: Control parallelism.
+- `headless` / `slowMoMillis`: Debugging controls for the browser run.
+- `proxyConfiguration`: Configure proxies in Apify Console.
 
-## Pull the Actor for local development
+## Output
 
-If you would like to develop locally, you can pull the existing Actor from Apify console using Apify CLI:
+The Actor stores results in the default dataset. Each product detail record includes the `url`, page `title`, and a `specifications` array grouped by table.
 
-1. Install `apify-cli`
+Example (simplified):
 
-    **Using Homebrew**
+```json
+{
+  "url": "https://www.digitec.ch/en/s1/product/…",
+  "title": "Seagate IronWolf Pro (24 TB, 3.5\") - buy at Digitec - Digitec",
+  "specifications": [
+    {
+      "groupTitle": "Key specifications",
+      "items": [
+        { "name": "Interface", "value": "SATA" },
+        { "name": "Interface version", "value": "SATA III" }
+      ]
+    }
+  ],
+  "scrapedAt": "2026-05-18T12:00:00.000Z"
+}
+```
 
-    ```bash
-    brew install apify-cli
-    ```
+You can download the dataset in various formats such as JSON, HTML, CSV, or Excel.
 
-    **Using NPM**
+## Data table
 
-    ```bash
-    npm -g install apify-cli
-    ```
+| Field | Type | Description |
+| --- | --- | --- |
+| `url` | string | Product detail page URL |
+| `title` | string | Page title (best-effort) |
+| `specifications` | array | Specification groups (tables) with name/value pairs |
+| `scrapedAt` | string | ISO timestamp of extraction |
 
-2. Pull the Actor by its unique `<ActorId>`, which is one of the following:
-    - unique name of the Actor to pull (e.g. "apify/hello-world")
-    - or ID of the Actor to pull (e.g. "E2jjCZBezvAZnX8Rb")
+## Pricing / Cost estimation
 
-    You can find both by clicking on the Actor title at the top of the page, which will open a modal containing both Actor unique name and Actor ID.
+How much does it cost to scrape Digitec? Cost depends mainly on how many product pages you open and whether you use proxies, because each product requires a browser page load. To reduce compute usage, keep `maxConcurrency` modest, limit `maxRequestsPerCrawl` during testing, and only scrape the categories you need.
 
-    This command will copy the Actor into the current directory on your local machine.
+## Tips or Advanced options
 
-    ```bash
-    apify pull <ActorId>
-    ```
+- If you already have product URLs, you can put product pages directly into `startUrls` (the Actor detects `/s1/product/` URLs).
+- If Digitec blocks requests, enable an Apify proxy in `proxyConfiguration` or reduce concurrency.
+- For faster iterations, keep `headless: false` and set `slowMoMillis` while debugging locally.
 
-## Documentation reference
+## FAQ, disclaimers, and support
 
-To learn more about Apify and Actors, take a look at the following resources:
+This Actor is intended for scraping publicly available product information. You are responsible for complying with Digitec’s Terms of Service and applicable laws, and for using reasonable rate limits.
 
-- [Apify SDK for JavaScript documentation](https://docs.apify.com/sdk/js)
-- [Apify SDK for Python documentation](https://docs.apify.com/sdk/python)
-- [Apify Platform documentation](https://docs.apify.com/platform)
-- [Join our developer community on Discord](https://discord.com/invite/jyEM2PRvMU)
+If you hit a bug or Digitec changes its markup, open an issue in the Actor’s repository/Issues tab with a sample URL and a short description of what changed.
