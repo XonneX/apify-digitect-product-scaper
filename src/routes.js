@@ -28,7 +28,7 @@ async function handleListingPage({ page, request, enqueueLinks }) {
     }
 
     // Scroll to load lazy content
-    await autoScroll(page);
+    await loadAllProducts(page);
 
     const products = await page.$$eval('a[href*="/s1/product/"]', (links) => {
         const seen = new Set();
@@ -158,23 +158,46 @@ function parseSwissPrice(value) {
     return Number.isFinite(parsed) ? parsed : null;
 }
 
-async function autoScroll(page) {
-    await page.evaluate(async () => {
-        await new Promise((resolve) => {
-            let totalHeight = 0;
-            const distance = 700;
+async function loadAllProducts(page) {
+    let previousHref = null;
+    let stableRounds = 0;
 
-            const timer = setInterval(() => {
-                window.scrollBy(0, distance);
-                totalHeight += distance;
+    while (stableRounds < 3) {
+        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+        await page.waitForTimeout(1000);
 
-                if (totalHeight >= document.body.scrollHeight - window.innerHeight) {
-                    clearInterval(timer);
-                    resolve();
-                }
-            }, 300);
-        });
-    });
+        const currentCount = await page.locator('a[href*="/s1/product/"]').count();
+
+        const showMoreLink = page
+            .locator('a[aria-label^="Load"][aria-label*="more products"]')
+            .first();
+
+        const isVisible = await showMoreLink.isVisible().catch(() => false);
+
+        if (!isVisible) {
+            log.info(`No Show more link found. Loaded ${currentCount} product links.`);
+            break;
+        }
+
+        const href = await showMoreLink.getAttribute('href');
+
+        log.info(`Clicking Show more: ${href}`);
+
+        if (href === previousHref) {
+            stableRounds++;
+        } else {
+            stableRounds = 0;
+        }
+
+        previousHref = href;
+
+        await Promise.all([
+            page.waitForLoadState('domcontentloaded').catch(() => {}),
+            showMoreLink.click(),
+        ]);
+
+        await page.waitForTimeout(2000);
+    }
 }
 
 async function extractSpecifications(page) {
