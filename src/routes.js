@@ -1,5 +1,6 @@
 import { createPlaywrightRouter } from '@crawlee/playwright';
 import { Actor, log } from 'apify';
+import {saveProduct} from "./db.js";
 
 export const router = createPlaywrightRouter();
 
@@ -175,6 +176,7 @@ async function handleProductPage({ page, request }) {
         log.warning(`No Specifications toggle found on ${request.url}`);
     }
 
+    await saveProduct(product);
     await Actor.pushData(product);
 }
 
