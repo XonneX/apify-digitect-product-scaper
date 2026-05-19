@@ -75,9 +75,7 @@ async function handleListingPage({ page, request, enqueueLinks }) {
         };
     });
 
-    await Actor.pushData(normalized);
-
-    log.info(`Saved ${normalized.length} products`);
+    log.info(`Loaded ${normalized.length} products`);
 
     // Enqueue product detail pages (to extract Specifications).
     await enqueueLinks({
