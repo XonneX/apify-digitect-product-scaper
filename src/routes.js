@@ -107,7 +107,7 @@ async function handleProductPage({ page, request }) {
 
     const title = cleanLine(await page.title().catch(() => null));
 
-    const product = {
+    let product = {
         url: request.url,
         title,
         scrapedAt: new Date().toISOString(),
@@ -129,7 +129,48 @@ async function handleProductPage({ page, request }) {
             }
         }
 
-        product.specifications = await extractSpecifications(page);
+        const specifications = await extractSpecifications(page);
+
+        product = {
+            ...product,
+
+            itemNumber: specifications['Item number'] ?? null,
+            manufacturer: specifications['Manufacturer'] ?? null,
+            manufacturerNo: specifications['Manufacturer No.'] ?? null,
+            category: specifications['Category'] ?? null,
+
+            scopeOfApplication: specifications['Scope of application'] ?? null,
+            interface: specifications['Interface'] ?? null,
+            interfaceVersion: specifications['Interface version'] ?? null,
+            formFactor: specifications['Form factor'] ?? null,
+
+            storageCapacityRaw: specifications['Storage capacity'] ?? null,
+            capacityTb: parseTb(specifications['Storage capacity']),
+
+            cacheRaw: specifications['Cache'] ?? null,
+            cacheMb: parseMb(specifications['Cache']),
+
+            sustainedSpeedHdd: specifications['Sustained Speed HDD'] ?? null,
+
+            maxSpeedRaw: specifications['Max. Speed'] ?? null,
+            rpm: parseRpm(specifications['Max. Speed']),
+
+            storageTechnology: specifications['Storage Technology'] ?? null,
+            maxWorkloadRate: specifications['Max. Workload Rate'] ?? null,
+            mtbf: specifications['MTBF'] ?? null,
+
+            powerConsumptionRaw: specifications['Power consumption'] ?? null,
+            powerConsumptionW: parseWatts(specifications['Power consumption']),
+
+            standbyPowerConsumptionRaw: specifications['Power consumption (standby)'] ?? null,
+            standbyPowerConsumptionW: parseWatts(specifications['Power consumption (standby)']),
+
+            maxOperatingTemperature: specifications['Maximum operating temperature'] ?? null,
+            maxNoiseLevel: specifications['Max. noise level'] ?? null,
+            countryOfOrigin: specifications['Country of origin'] ?? null,
+
+            rawSpecifications: specifications,
+        };
     } else {
         log.warning(`No Specifications toggle found on ${request.url}`);
     }
@@ -156,6 +197,26 @@ function parseSwissPrice(value) {
 
     const parsed = Number(normalized);
     return Number.isFinite(parsed) ? parsed : null;
+}
+
+function parseTb(value) {
+    const match = value?.match(/(\d+(?:[.,]\d+)?)\s*TB/i);
+    return match ? Number(match[1].replace(',', '.')) : null;
+}
+
+function parseMb(value) {
+    const match = value?.match(/(\d+)\s*MB/i);
+    return match ? Number(match[1]) : null;
+}
+
+function parseRpm(value) {
+    const match = value?.match(/(\d+)\s*RPM/i);
+    return match ? Number(match[1]) : null;
+}
+
+function parseWatts(value) {
+    const match = value?.match(/(\d+(?:[.,]\d+)?)\s*W/i);
+    return match ? Number(match[1].replace(',', '.')) : null;
 }
 
 async function loadAllProducts(page) {
@@ -204,41 +265,34 @@ async function extractSpecifications(page) {
     return await page.evaluate(() => {
         const clean = (v) => (v ?? '').replace(/\s+/g, ' ').trim();
 
+        const normalizeKey = (key) =>
+            clean(key)
+                .replace(/i$/, '') // removes Digitec info-icon suffix
+                .trim();
+
         const specsButton =
             document.querySelector('button#specifications')
             ?? document.querySelector('button[data-test="specifications"]');
-        if (!specsButton) return null;
+
+        if (!specsButton) return {};
 
         const specsRoot =
             specsButton.closest('section')
             ?? specsButton.parentElement
             ?? document.body;
 
-        const tables = Array.from(specsRoot.querySelectorAll('table'));
-        if (!tables.length) return [];
+        const rows = Array.from(specsRoot.querySelectorAll('table tbody tr'));
 
-        return tables
-            .map((table) => {
-                const groupTitle = clean(
-                    table.querySelector('caption')?.innerText
-                    ?? table.querySelector('caption')?.textContent,
-                );
+        return rows.reduce((specs, tr) => {
+            const tds = tr.querySelectorAll('td');
 
-                const items = Array.from(table.querySelectorAll('tbody tr'))
-                    .map((tr) => {
-                        const tds = tr.querySelectorAll('td');
-                        const name = clean(tds[0]?.innerText ?? tds[0]?.textContent);
-                        const value = clean(tds[1]?.innerText ?? tds[1]?.textContent);
-                        if (!name && !value) return null;
-                        return { name, value: value || null };
-                    })
-                    .filter(Boolean);
+            const name = normalizeKey(tds[0]?.innerText ?? tds[0]?.textContent);
+            const value = clean(tds[1]?.innerText ?? tds[1]?.textContent);
 
-                return {
-                    groupTitle: groupTitle || null,
-                    items,
-                };
-            })
-            .filter((g) => g.items?.length);
+            if (!name || !value) return specs;
+
+            specs[name] = value;
+            return specs;
+        }, {});
     });
 }
