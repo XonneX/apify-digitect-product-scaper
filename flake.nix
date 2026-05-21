@@ -20,6 +20,7 @@
         packages = with pkgs; [
           just
           nodejs
+          pre-commit
         ];
 
         # shellHook =
@@ -37,6 +38,7 @@
         };
 
         shellHook = ''
+          pre-commit install
           playwrightNpmVersion=$(node -p "require('playwright/package.json').version" 2>/dev/null || true)
           nixPlaywrightBaseVersion=$(echo "${pkgs.playwright.version}" | cut -d. -f1,2)
           npmPlaywrightBaseVersion=$(echo "$playwrightNpmVersion" | cut -d. -f1,2)
@@ -58,4 +60,3 @@
       };
     };
 }
-
