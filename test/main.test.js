@@ -14,7 +14,7 @@ describe('PlaywrightCrawler', () => {
             requestHandler: router,
         });
 
-        await crawler.run(['https://apify.com']);
+        await crawler.run(['https://www.digitec.ch/en/s1/producttype/hard-drives-36?filter=460%3D16%3A32%3A15%2C60%3D1098']);
 
         expect(crawler.stats.state.requestsFinished).toBeGreaterThanOrEqual(10);
 
