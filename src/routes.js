@@ -108,11 +108,18 @@ async function handleProductPage({ page, request }) {
 
     const title = cleanLine(await page.title().catch(() => null));
 
+    const productDetail = page.locator('.productDetail').first();
+
+    let priceChf = await productDetail.innerText();
+    priceChf = parseSwissPrice(priceChf.match(/(?:CHF|Fr\.)\s*([\d’'.-]+)/i)[0]);
+
     let product = {
         url: request.url,
         title,
         scrapedAt: new Date().toISOString(),
         specifications: null,
+
+        priceChf,
     };
 
     // Expand the Specifications accordion, then "show more" if available.
@@ -132,8 +139,12 @@ async function handleProductPage({ page, request }) {
 
         const specifications = await extractSpecifications(page);
 
+        const capacityTb = parseTb(specifications['Storage capacity']);
+
         product = {
             ...product,
+
+            pricePerTb: Number((priceChf / capacityTb).toFixed(2)),
 
             itemNumber: specifications['Item number'] ?? null,
             manufacturer: specifications['Manufacturer'] ?? null,
@@ -146,7 +157,7 @@ async function handleProductPage({ page, request }) {
             formFactor: specifications['Form factor'] ?? null,
 
             storageCapacityRaw: specifications['Storage capacity'] ?? null,
-            capacityTb: parseTb(specifications['Storage capacity']),
+            capacityTb: capacityTb,
 
             cacheRaw: specifications['Cache'] ?? null,
             cacheMb: parseMb(specifications['Cache']),
