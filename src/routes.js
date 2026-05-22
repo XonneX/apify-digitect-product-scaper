@@ -45,42 +45,20 @@ async function handleListingPage({ page, request, enqueueLinks }) {
                 if (!href || seen.has(href)) return null;
                 seen.add(href);
 
-                const priceMatch = text.match(/(?:CHF|Fr\.)\s*([\d’'.-]+)/i)
-                    ?? text.match(/([\d’'.-]+)\s*(?:CHF|Fr\.)/i);
-
-                const tbMatch = text.match(/(\d+(?:[.,]\d+)?)\s*TB/i);
-
                 return {
                     title: clean(a.innerText || text.split('\n')[0]),
                     url: href,
-                    priceText: priceMatch?.[0] ?? null,
-                    priceValueRaw: priceMatch?.[1] ?? null,
-                    capacityTb: tbMatch ? Number(tbMatch[1].replace(',', '.')) : null,
-                    rawText: text,
                 };
             })
             .filter(Boolean)
             .filter((item) => item.title && item.title.length > 5);
     });
 
-    const normalized = products.map((p) => {
-        const priceChf = p.priceValueRaw ? parseSwissPrice(p.priceValueRaw) : null;
-        return {
-            ...p,
-            priceChf,
-            pricePerTb:
-                priceChf && p.capacityTb
-                    ? Number((priceChf / p.capacityTb).toFixed(2))
-                    : null,
-            scrapedAt: new Date().toISOString(),
-        };
-    });
-
-    log.info(`Loaded ${normalized.length} products`);
+    log.info(`Loaded ${products.length} products`);
 
     // Enqueue product detail pages (to extract Specifications).
     await enqueueLinks({
-        urls: normalized.map((p) => p.url),
+        urls: products.map((p) => p.url),
         label: 'PRODUCT',
         strategy: 'same-domain',
     });
