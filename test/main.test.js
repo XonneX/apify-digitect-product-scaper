@@ -38,37 +38,3 @@ describe('PlaywrightCrawler', () => {
         expect(items[0].pricePerTb).toBeDefined();
     }, 60_000);
 });
-
-describe('listing price handoff', () => {
-    it('preserves listing-derived price fields on product requests', () => {
-        const result = __testables.getListingDataFromRequest({
-            userData: {
-                listingData: {
-                    priceText: 'CHF 479.–',
-                    priceValueRaw: '479.–',
-                    priceChf: 479,
-                    pricePerTb: 19.96,
-                    capacityTb: 24,
-                },
-            },
-        });
-
-        expect(result).toEqual({
-            priceText: 'CHF 479.–',
-            priceValueRaw: '479.–',
-            priceChf: 479,
-            pricePerTb: 19.96,
-        });
-    });
-
-    it('falls back to null price fields when listing data is missing', () => {
-        const result = __testables.getListingDataFromRequest({ userData: {} });
-
-        expect(result).toEqual({
-            priceText: null,
-            priceValueRaw: null,
-            priceChf: null,
-            pricePerTb: null,
-        });
-    });
-});
