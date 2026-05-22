@@ -31,41 +31,21 @@ async function handleListingPage({ page, request, enqueueLinks }) {
     // Scroll to load lazy content
     await loadAllProducts(page);
 
-    const products = await page.$$eval('a[href*="/s1/product/"]', (links) => {
-        const seen = new Set();
-        const clean = (value) => (value ?? '').replace(/\s+/g, ' ').trim();
+    const productUrls = [
+        ...new Set(
+            await page.$$eval(
+                'a[href*="/s1/product/"]',
+                    links => links.map(a => a.href),
+            ),
+        ),
+    ];
 
-        return links
-            .map((a) => {
-                const href = a.href;
-                const card = a.closest('article, div');
-
-                const text = card?.innerText ?? a.innerText ?? '';
-
-                if (!href || seen.has(href)) return null;
-                seen.add(href);
-
-                return {
-                    title: clean(a.innerText || text.split('\n')[0]),
-                    url: href,
-                };
-            })
-            .filter(Boolean)
-            .filter((item) => item.title && item.title.length > 5);
-    });
-
-    log.info(`Loaded ${products.length} products`);
+    log.info(`Loaded ${productUrls.length} products`);
 
     // Enqueue product detail pages (to extract Specifications).
     await enqueueLinks({
-        urls: products.map((p) => p.url),
+        urls: productUrls,
         label: 'PRODUCT',
-        strategy: 'same-domain',
-    });
-
-    // Enqueue next page
-    await enqueueLinks({
-        selector: 'a[href*="page="], a[aria-label*="Next"], a[rel="next"]',
         strategy: 'same-domain',
     });
 }
