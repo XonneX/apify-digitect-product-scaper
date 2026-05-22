@@ -17,8 +17,7 @@ export async function saveProduct(product) {
 
     await pool.query(
         `
-            INSERT INTO drive_product_snapshots (source,
-                                                 url,
+            INSERT INTO drive_product_snapshots (url,
                                                  title,
                                                  scraped_at,
                                                  item_number,
@@ -35,11 +34,9 @@ export async function saveProduct(product) {
             VALUES ($1, $2, $3, $4,
                     $5, $6, $7, $8,
                     $9, $10, $11, $12,
-                    $13, $14,
-                    $15)
+                    $13, $14)
         `,
         [
-            product.source,
             product.url,
             product.title,
             product.scrapedAt,
