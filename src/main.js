@@ -13,7 +13,6 @@ const startUrls = input.startUrls ?? [
 
 const proxyConfiguration = await Actor.createProxyConfiguration(
     input.proxyConfiguration ?? {
-        // Digitec can be strict; change in Input tab if needed.
         groups: ['RESIDENTIAL'],
         checkAccess: true,
     },
