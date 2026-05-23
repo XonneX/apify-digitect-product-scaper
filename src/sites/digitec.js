@@ -1,20 +1,14 @@
 import {Actor, log} from "apify";
 import {saveProduct} from "../db.js";
+import {acceptCookies, cleanLine} from "../utils.js";
 
-export async function handleListingPage({ page, request, enqueueLinks }) {
+export async function handleDigitecListingPage({ page, request, enqueueLinks }) {
     log.info(`Listing page: ${request.url}`);
 
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(3000);
 
-    // Accept cookie banner if it appears
-    const cookieButton = page.getByRole('button', {
-        name: /accept|agree|ok|verstanden|akzeptieren/i,
-    });
-
-    if (await cookieButton.first().isVisible().catch(() => false)) {
-        await cookieButton.first().click().catch(() => {});
-    }
+    await acceptCookies(page);
 
     // Scroll to load lazy content
     await loadAllProducts(page);
@@ -38,19 +32,12 @@ export async function handleListingPage({ page, request, enqueueLinks }) {
     });
 }
 
-export async function handleProductPage({ page, request }) {
+export async function handleDigitecProductPage({ page, request }) {
     log.info(`Product page: ${request.url}`);
 
     await page.waitForLoadState('domcontentloaded');
 
-    // Accept cookie banner if it appears
-    const cookieButton = page.getByRole('button', {
-        name: /accept|agree|ok|verstanden|akzeptieren/i,
-    });
-
-    if (await cookieButton.first().isVisible().catch(() => false)) {
-        await cookieButton.first().click().catch(() => {});
-    }
+    await acceptCookies(page);
 
     const title = cleanLine(await page.title().catch(() => null));
 
@@ -138,12 +125,6 @@ export async function handleProductPage({ page, request }) {
     await Actor.pushData(product);
 }
 
-function cleanLine(value) {
-    return value
-        ?.replace(/\s+/g, ' ')
-        .trim();
-}
-
 function parseSwissPrice(value) {
     const normalized = value
         .replace(/[’']/g, '')
@@ -155,20 +136,7 @@ function parseSwissPrice(value) {
     return Number.isFinite(parsed) ? parsed : null;
 }
 
-function parseTb(value) {
-    const match = value?.match(/(\d+(?:[.,]\d+)?)\s*TB/i);
-    return match ? Number(match[1].replace(',', '.')) : null;
-}
 
-function parseMb(value) {
-    const match = value?.match(/(\d+)\s*MB/i);
-    return match ? Number(match[1]) : null;
-}
-
-function parseRpm(value) {
-    const match = value?.match(/(\d+)\s*RPM/i);
-    return match ? Number(match[1]) : null;
-}
 
 function parseWatts(value) {
     const match = value?.match(/(\d+(?:[.,]\d+)?)\s*W/i);
