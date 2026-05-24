@@ -14,19 +14,37 @@ export async function scrollToBottom(page) {
 
     while (true) {
         const currentHeight = await page.evaluate(
-            () => document.body.scrollHeight,
+            () => document.body.scrollHeight
         );
 
+        // Stop if page height no longer grows
         if (currentHeight === previousHeight) {
             break;
         }
 
         previousHeight = currentHeight;
 
-        await page.evaluate(() => {
-            window.scrollTo(0, document.body.scrollHeight);
+        // Slowly scroll down in chunks
+        await page.evaluate(async () => {
+            await new Promise(resolve => {
+                const step = 400; // px per scroll
+                const delay = 150; // ms between scrolls
+
+                const timer = setInterval(() => {
+                    window.scrollBy(0, step);
+
+                    if (
+                        window.scrollY + window.innerHeight >=
+                        document.body.scrollHeight
+                    ) {
+                        clearInterval(timer);
+                        resolve();
+                    }
+                }, delay);
+            });
         });
 
+        // Give lazy loading time
         await page.waitForTimeout(1500);
     }
 }
