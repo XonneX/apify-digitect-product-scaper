@@ -39,9 +39,10 @@ export async function handleBrackProductPage({page, request}) {
 
     const title = cleanLine(await page.title().catch(() => null));
 
+    const path = new URL(page.url()).pathname;
     const priceChf = await page.locator(
         'script[type="application/ld+json"]'
-    ).evaluateAll((scripts) => {
+    ).evaluateAll((scripts, path) => {
         for (const script of scripts) {
             try {
                 const json = JSON.parse(script.textContent);
@@ -50,7 +51,7 @@ export async function handleBrackProductPage({page, request}) {
 
                 for (const product of variants) {
                     if (
-                        product.name?.includes('24 TB')
+                        product.url === path
                         && product.offers?.price
                     ) {
                         return Number(product.offers.price);
@@ -61,7 +62,7 @@ export async function handleBrackProductPage({page, request}) {
         }
 
         return null;
-    });
+    }, path);
 
     const specsToggle = page.getByRole('heading', {
         name: 'Spezifikationen',
