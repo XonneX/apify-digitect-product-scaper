@@ -1,6 +1,6 @@
 import {Actor, log} from "apify";
 import {saveProduct} from "../db.js";
-import {acceptCookies, cleanLine} from "../utils.js";
+import {acceptCookies, cleanLine, parseMb, parseRpm, parseTb} from "../utils.js";
 
 export async function handleDigitecListingPage({ page, request, enqueueLinks }) {
     log.info(`Listing page: ${request.url}`);
