@@ -4,5 +4,6 @@ export default defineConfig({
     test: {
         include: ['test/**/*.test.js'],
         exclude: ['**/node_modules/**', '**/.direnv/**', '**/storage/**'],
+        fileParallelism: false,
     },
 });
