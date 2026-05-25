@@ -8,7 +8,7 @@ await Actor.init();
 const input = (await Actor.getInput()) ?? {};
 
 const startUrls = input.startUrls ?? [
-    // 'https://www.digitec.ch/en/s1/producttype/hard-drives-36?filter=460%3D16%3A32%3A15%2C60%3D1098',
+    'https://www.digitec.ch/en/s1/producttype/hard-drives-36?filter=460%3D16%3A32%3A15%2C60%3D1098',
     'https://www.brack.ch/it-multimedia/pc-komponenten/festplatten-ssd/hdd?filter%5BattributeGroupFacet_speicherschnittstelle%5D%5B%5D=SATA%20III%20(6Gb%2Fs)&filter%5BattributeUnitGroupFacet_speicherkapazitaet-total%5D%5B%5D=16~~~30',
 ];
 
