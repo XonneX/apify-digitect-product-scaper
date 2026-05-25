@@ -52,7 +52,7 @@ describe('Brack', () => {
         expect(item["Herstellerseite"]).toBe("Zum Hersteller");
     }, 60_000);
 
-    it('should fill all data in special case ', async () => {
+    it('should fill all data in special case', async () => {
         const crawler = new PlaywrightCrawler({
             requestHandler: handleBrackProductPage,
         });
@@ -92,5 +92,25 @@ describe('Brack', () => {
         expect(item["Herstellernummer"]).toBe("WD161KFGX");
         expect(item["Herstellergarantie"]).toBe("60 Monate");
         expect(item["Garantieinformationen"]).toBe("Western Digital");
+    }, 60_000);
+
+    it('should have price if no variants', async () => {
+        const crawler = new PlaywrightCrawler({
+            requestHandler: handleBrackProductPage,
+        });
+
+        const url = 'https://www.brack.ch/seagate-harddisk-exos-m3-plus-3-5-sata-30-tb-1925008';
+        await crawler.run([url]);
+
+        expect(crawler.stats.state.requestsFinished).toBe(1);
+
+        const {items} = await crawler.getData();
+        const idx = items.findIndex(item => item.url === url);
+        expect(idx).toBeGreaterThanOrEqual(0);
+
+        const item = items[idx];
+        expect(item["url"]).toBe("https://www.brack.ch/seagate-harddisk-exos-m3-plus-3-5-sata-30-tb-1925008");
+        expect(item["priceChf"]).toBe(880);
+        expect(item["pricePerTb"]).toBe(29.3333333333333333333);
     }, 60_000);
 });

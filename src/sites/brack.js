@@ -47,6 +47,10 @@ export async function handleBrackProductPage({page, request}) {
             try {
                 const json = JSON.parse(script.textContent);
 
+                if ("offers" in json) {
+                    return Number(json.offers.price);
+                }
+
                 const variants = json.hasVariant ?? [];
 
                 for (const product of variants) {
