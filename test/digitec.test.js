@@ -3,7 +3,7 @@ import {beforeAll, describe, expect, it} from 'vitest';
 
 import {__testables, router} from '../src/routes.js';
 
-describe('PlaywrightCrawler', () => {
+describe('Digitec', () => {
     beforeAll(async () => {
         await purgeDefaultStorages();
     });
